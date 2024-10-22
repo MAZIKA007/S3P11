@@ -32,10 +32,15 @@ void loadData(const std::string& filename) {
 
 void displayData() {
     for (const auto& res : resources) {
-        std::cout << "ID: " << res.id << "\nНазвание: " << res.title << "\nАвтор: " << res.author
-                  << "\nКатегория: " << res.category << "\nГод: " << res.year 
-                  << "\nСсылка: " << res.access_link << "\nПросмотры: " << res.views << "\n" << std::endl;
+        std::cout << "============================\n";
+        std::cout << "ID: " << res.id << "\nНазвание: " << res.title 
+                  << "\nАвтор: " << res.author
+                  << "\nКатегория: " << res.category 
+                  << "\nГод: " << res.year 
+                  << "\nСсылка: " << res.access_link 
+                  << "\nПросмотры: " << res.views << "\n";
     }
+    std::cout << "============================\n";
 }
 
 void editResource(int id) {
@@ -80,11 +85,11 @@ void addResource() {
             maxId = res.id;
         }
     }
-    newRes.id = maxId + 1; 
+    newRes.id = maxId + 1;
 
     std::cout << "Введите название ресурса: ";
-    std::cin.ignore(); 
-    std::getline(std::cin, newRes.title); 
+    std::cin.ignore();
+    std::getline(std::cin, newRes.title);
 
     std::cout << "Введите автора: ";
     std::getline(std::cin, newRes.author);
@@ -95,8 +100,8 @@ void addResource() {
     std::cout << "Введите год: ";
     while (!(std::cin >> newRes.year) || newRes.year < 0) {
         std::cout << "Пожалуйста, введите корректный год: ";
-        std::cin.clear(); 
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
     std::cout << "Введите ссылку: ";
@@ -106,11 +111,12 @@ void addResource() {
     std::cout << "Введите количество просмотров: ";
     while (!(std::cin >> newRes.views) || newRes.views < 0) {
         std::cout << "Пожалуйста, введите корректное количество просмотров: ";
-        std::cin.clear(); 
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
     resources.push_back(newRes);
+    saveData("new_resources.txt");
 }
 
 int main() {
@@ -120,7 +126,12 @@ int main() {
     int choice;
     while (true) {
         std::cout << "Меню:\n1. Просмотр ресурсов\n2. Редактировать ресурс\n3. Подсчет просмотров\n4. Добавить ресурс\n5. Сохранить данные\n6. Выйти\n";
-        std::cin >> choice;
+        if (!(std::cin >> choice)) {
+            std::cout << "Пожалуйста, введите корректный выбор." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
+        }
 
         if (choice == 1) {
             displayData();
@@ -132,11 +143,11 @@ int main() {
         } else if (choice == 3) {
             calculateTotalViews();
         } else if (choice == 4) {
-            addResource(); 
+            addResource();
         } else if (choice == 5) {
             saveData("new_resources.txt");
         } else if (choice == 6) {
-            break;
+            return 0;
         } else {
             std::cout << "Неверный выбор." << std::endl;
         }
@@ -144,3 +155,4 @@ int main() {
 
     return 0;
 }
+
