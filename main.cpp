@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 
-
 struct EResource {
     int id;
     std::string title;
@@ -71,6 +70,36 @@ void saveData(const std::string& filename) {
     file.close();
 }
 
+// Функция для добавления нового ресурса
+void addResource() {
+    EResource newRes;
+
+    std::cout << "Введите ID ресурса: ";
+    std::cin >> newRes.id;
+
+    std::cout << "Введите название ресурса: ";
+    std::cin.ignore(); 
+    std::getline(std::cin, newRes.title); 
+
+    std::cout << "Введите автора: ";
+    std::getline(std::cin, newRes.author);
+
+    std::cout << "Введите категорию: ";
+    std::getline(std::cin, newRes.category);
+
+    std::cout << "Введите год: ";
+    std::cin >> newRes.year;
+
+    std::cout << "Введите ссылку: ";
+    std::cin.ignore();
+    std::getline(std::cin, newRes.access_link);
+
+    std::cout << "Введите количество просмотров: ";
+    std::cin >> newRes.views;
+
+    resources.push_back(newRes);
+}
+
 int main() {
     std::string filename = "resources.txt";
     loadData(filename);
@@ -90,10 +119,7 @@ int main() {
         } else if (choice == 3) {
             calculateTotalViews();
         } else if (choice == 4) {
-            EResource newRes;
-            std::cout << "Введите данные для нового ресурса (id, название, автор, категория, год, ссылка, просмотры): ";
-            std::cin >> newRes.id >> newRes.title >> newRes.author >> newRes.category >> newRes.year >> newRes.access_link >> newRes.views;
-            resources.push_back(newRes);
+            addResource(); 
         } else if (choice == 5) {
             saveData("new_resources.txt");
         } else if (choice == 6) {
