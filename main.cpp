@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <limits>
 
 struct EResource {
     int id;
@@ -70,12 +71,16 @@ void saveData(const std::string& filename) {
     file.close();
 }
 
-// Функция для добавления нового ресурса
 void addResource() {
     EResource newRes;
 
-    std::cout << "Введите ID ресурса: ";
-    std::cin >> newRes.id;
+    int maxId = 0;
+    for (const auto& res : resources) {
+        if (res.id > maxId) {
+            maxId = res.id;
+        }
+    }
+    newRes.id = maxId + 1; 
 
     std::cout << "Введите название ресурса: ";
     std::cin.ignore(); 
@@ -88,14 +93,22 @@ void addResource() {
     std::getline(std::cin, newRes.category);
 
     std::cout << "Введите год: ";
-    std::cin >> newRes.year;
+    while (!(std::cin >> newRes.year) || newRes.year < 0) {
+        std::cout << "Пожалуйста, введите корректный год: ";
+        std::cin.clear(); 
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+    }
 
     std::cout << "Введите ссылку: ";
     std::cin.ignore();
     std::getline(std::cin, newRes.access_link);
 
     std::cout << "Введите количество просмотров: ";
-    std::cin >> newRes.views;
+    while (!(std::cin >> newRes.views) || newRes.views < 0) {
+        std::cout << "Пожалуйста, введите корректное количество просмотров: ";
+        std::cin.clear(); 
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); 
+    }
 
     resources.push_back(newRes);
 }
