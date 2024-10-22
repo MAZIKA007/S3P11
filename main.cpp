@@ -1,4 +1,4 @@
-#include <iostream>
+ #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
@@ -138,7 +138,11 @@ int main() {
         } else if (choice == 2) {
             int id;
             std::cout << "Введите ID ресурса для редактирования: ";
-            std::cin >> id;
+            while (!(std::cin >> id)) {
+                std::cout << "Ошибка ввода! Пожалуйста, введите корректный ID: ";
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
             editResource(id);
         } else if (choice == 3) {
             calculateTotalViews();
@@ -147,7 +151,7 @@ int main() {
         } else if (choice == 5) {
             saveData("new_resources.txt");
         } else if (choice == 6) {
-            return 0;
+            break;
         } else {
             std::cout << "Неверный выбор." << std::endl;
         }
@@ -155,4 +159,3 @@ int main() {
 
     return 0;
 }
-
