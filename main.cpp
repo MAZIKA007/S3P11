@@ -150,12 +150,16 @@ void deleteResource(int id) {
 }
 
 int main() {
-    std::string filename = "resources.txt";
+    // Запрос названия файла для загрузки данных
+    std::string filename;
+    std::cout << "Введите название файла для загрузки данных: ";
+    std::cin >> filename;
+
     loadData(filename); // Загрузка данных при старте программы
 
     int choice;
     while (true) {
-        std::cout << "Меню:\n1. Просмотр ресурсов\n2. Редактировать ресурс\n3. Подсчет просмотров\n4. Добавить ресурс\n5. Удалить ресурс\n6. Выйти\n";
+        std::cout << "Меню:\n1. Просмотр ресурсов\n2. Редактировать ресурс\n3. Подсчет просмотров\n4. Добавить ресурс\n5. Удалить ресурс\n6. Сохранить данные в новый файл\n7. Выйти\n";
         if (!(std::cin >> choice)) {
             std::cout << "Пожалуйста, введите корректный выбор." << std::endl;
             std::cin.clear(); // Очистка в случае некорректного ввода
@@ -189,6 +193,11 @@ int main() {
             }
             deleteResource(id); // Удалить ресурс
         } else if (choice == 6) {
+            std::string newFilename;
+            std::cout << "Введите название нового файла для сохранения данных: ";
+            std::cin >> newFilename;
+            saveData(newFilename); // Сохранить данные в новый файл
+        } else if (choice == 7) {
             break; // Выйти из программы
         } else {
             std::cout << "Неверный выбор." << std::endl;
@@ -197,4 +206,3 @@ int main() {
 
     return 0;
 }
-
