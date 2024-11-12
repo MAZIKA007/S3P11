@@ -1,8 +1,9 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <limits>
-#include <cstdlib>
+#include <iomanip> // Для использования std::setw()
+#include <limits>  // Для обработки ошибок ввода
+#include <cstdlib> // Для очистки экрана
 
 // Структура для хранения данных об электронных ресурсах
 struct EResource {
@@ -15,16 +16,14 @@ struct EResource {
     int views;
 };
 
-// Константа для максимального количества ресурсов
-const int MAX_RESOURCES = 100;
-
-// Массив для хранения ресурсов
+// Максимальное количество ресурсов
+const int MAX_RESOURCES = 1000;
 EResource resources[MAX_RESOURCES];
 int resourceCount = 0;
 
-// Функция для очистки терминала
+// Функция для очистки экрана
 void clearScreen() {
-    std::system("clear"); 
+    std::system("clear"); // Для Linux и macOS
 }
 
 // Функция для загрузки данных из файла
@@ -35,78 +34,109 @@ void loadData(const std::string& filename) {
         return;
     }
 
-    while (file >> resources[resourceCount].id) {
-        file >> std::ws; // Игнорировать пробелы
-        std::getline(file, resources[resourceCount].title);
-        std::getline(file, resources[resourceCount].author);
-        std::getline(file, resources[resourceCount].category);
-        file >> resources[resourceCount].year;
-        file >> std::ws; // Игнорировать пробелы
-        std::getline(file, resources[resourceCount].access_link);
-        file >> resources[resourceCount].views;
-
+    resourceCount = 0; // Обнуляем количество ресурсов
+    while (file >> resources[resourceCount].id >> std::quoted(resources[resourceCount].title)
+                >> std::quoted(resources[resourceCount].author) >> resources[resourceCount].category
+                >> resources[resourceCount].year >> resources[resourceCount].access_link
+                >> resources[resourceCount].views) {
         resourceCount++;
+        if (resourceCount >= MAX_RESOURCES) break;
     }
+
     file.close();
 }
 
 void displayData() {
-    std::cout << "============================\n";
-    std::cout << " ID | Название               | Автор                 | Категория         | Год | Ссылка                      | Просмотры\n";
-    std::cout << "----|------------------------|-----------------------|-------------------|-----|-----------------------------|----------\n";
-    for (int i = 0; i < resourceCount; i++) {
-        std::cout << " " << resources[i].id << " | "
-                  << resources[i].title << " | "
-                  << resources[i].author << " | "
-                  << resources[i].category << " | "
-                  << resources[i].year << " | "
-                  << resources[i].access_link << " | "
-                  << resources[i].views << "\n";
+    // Определение ширины колонок
+    int widthID = 5, widthTitle = 25, widthAuthor = 20, widthCategory = 15;
+    int widthYear = 6, widthLink = 30, widthViews = 10;
+
+    // Заголовок таблицы с точной шириной столбцов
+    std::cout << std::left;
+    std::cout << "=====================================================================================================================================\n";
+    std::cout << "| " << std::setw(widthID) << "ID"
+              << " | " << std::setw(widthTitle) << "Title"
+              << " | " << std::setw(widthAuthor) << "Author"
+              << " | " << std::setw(widthCategory) << "Category"
+              << " | " << std::setw(widthYear) << "Year"
+              << " | " << std::setw(widthLink) << "Link"
+              << " | " << std::setw(widthViews) << "Views"
+              << " |\n";
+    std::cout << "=====================================================================================================================================\n";
+
+    // Вывод каждого ресурса из массива
+    for (int i = 0; i < resourceCount; ++i) {
+        std::cout << "| " << std::setw(widthID) << resources[i].id
+                  << " | " << std::setw(widthTitle) << resources[i].title.substr(0, widthTitle)
+                  << " | " << std::setw(widthAuthor) << resources[i].author.substr(0, widthAuthor)
+                  << " | " << std::setw(widthCategory) << resources[i].category.substr(0, widthCategory)
+                  << " | " << std::setw(widthYear) << resources[i].year
+                  << " | " << std::setw(widthLink) << resources[i].access_link.substr(0, widthLink)
+                  << " | " << std::setw(widthViews) << resources[i].views
+                  << " |\n";
+        std::cout << "-------------------------------------------------------------------------------------------------------------------------------------\n";
     }
-    std::cout << "============================\n";
+
+    std::cout << "=====================================================================================================================================\n";
+}
+// Функция для подсчета общего количества просмотров всех ресурсов
+void calculateTotalViews() {
+    clearScreen();
+    int totalViews = 0;
+    for (int i = 0; i < resourceCount; ++i) {
+        totalViews += resources[i].views;
+    }
+    std::cout << "Общее количество просмотров всех ресурсов: " << totalViews << std::endl;
 }
 
+// Функция для добавления нового ресурса
 void addResource() {
+    clearScreen();
     if (resourceCount >= MAX_RESOURCES) {
-        std::cout << "Достигнуто максимальное количество ресурсов." << std::endl;
+        std::cerr << "Превышено максимальное количество ресурсов." << std::endl;
         return;
     }
 
     EResource newRes;
-    newRes.id = resourceCount + 1; // Новый ID больше текущего количества
 
+    // Присвоение нового ID
+    newRes.id = resourceCount + 1;
+
+    // Ввод остальных данных с проверкой на пустоту
     std::cout << "Введите название ресурса: ";
-    std::getline(std::cin >> std::ws, newRes.title);
+    std::getline(std::cin, newRes.title);
     if (newRes.title.empty()) {
-        std::cerr << "Название не может быть пустым." << std::endl;
+        std::cerr << "Ошибка: Название не может быть пустым." << std::endl;
         return;
     }
 
     std::cout << "Введите автора: ";
-    std::getline(std::cin >> std::ws, newRes.author);
+    std::getline(std::cin, newRes.author);
     if (newRes.author.empty()) {
-        std::cerr << "Автор не может быть пустым." << std::endl;
+        std::cerr << "Ошибка: Автор не может быть пустым." << std::endl;
         return;
     }
 
     std::cout << "Введите категорию: ";
-    std::getline(std::cin >> std::ws, newRes.category);
+    std::getline(std::cin, newRes.category);
     if (newRes.category.empty()) {
-        std::cerr << "Категория не может быть пустой." << std::endl;
+        std::cerr << "Ошибка: Категория не может быть пустой." << std::endl;
         return;
     }
 
     std::cout << "Введите год: ";
     while (!(std::cin >> newRes.year) || newRes.year < 0) {
         std::cout << "Пожалуйста, введите корректный год: ";
-        std::cin.clear(); // Очистка потока ввода
+        std::cin.clear();
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
+    std::cin.ignore(); // Для сброса буфера
+
     std::cout << "Введите ссылку: ";
-    std::getline(std::cin >> std::ws, newRes.access_link);
+    std::getline(std::cin, newRes.access_link);
     if (newRes.access_link.empty()) {
-        std::cerr << "Ссылка не может быть пустой." << std::endl;
+        std::cerr << "Ошибка: Ссылка не может быть пустой." << std::endl;
         return;
     }
 
@@ -117,173 +147,103 @@ void addResource() {
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    resources[resourceCount++] = newRes; // Добавляем новый ресурс
+    resources[resourceCount] = newRes;
+    resourceCount++;
 }
 
-// Функция для редактирования ресурса по его ID
-void editResource(int id) {
-    for (int i = 0; i < resourceCount; i++) {
-        if (resources[i].id == id) {
-            std::cout << "Введите новые данные для ресурса (пустое значение оставит старое):\n";
-            std::string input;
-
-            std::cout << "Название (текущее: " << resources[i].title << "): ";
-            std::getline(std::cin >> std::ws, input);
-            if (!input.empty()) resources[i].title = input;
-
-            std::cout << "Автор (текущий: " << resources[i].author << "): ";
-            std::getline(std::cin >> std::ws, input);
-            if (!input.empty()) resources[i].author = input;
-
-            std::cout << "Категория (текущая: " << resources[i].category << "): ";
-            std::getline(std::cin >> std::ws, input);
-            if (!input.empty()) resources[i].category = input;
-
-            std::cout << "Год (текущий: " << resources[i].year << "): ";
-            std::string yearInput;
-            std::getline(std::cin >> std::ws, yearInput);
-            if (!yearInput.empty()) resources[i].year = std::stoi(yearInput);
-
-            std::cout << "Ссылка (текущая: " << resources[i].access_link << "): ";
-            std::getline(std::cin >> std::ws, input);
-            if (!input.empty()) resources[i].access_link = input;
-
-            std::cout << "Просмотры (текущие: " << resources[i].views << "): ";
-            std::string viewsInput;
-            std::getline(std::cin >> std::ws, viewsInput);
-            if (!viewsInput.empty()) resources[i].views = std::stoi(viewsInput);
-
-            return;
-        }
-    }
-    std::cout << "Ресурс с таким ID не найден." << std::endl;
-}
-
-// Функция для удаления ресурса по его ID
-void deleteResource(int id) {
-    for (int i = 0; i < resourceCount; i++) {
-        if (resources[i].id == id) {
-            // Сдвигаем все элементы после удаляемого на одну позицию влево
-            for (int j = i; j < resourceCount - 1; j++) {
-                resources[j] = resources[j + 1];
-            }
-            resourceCount--; // Уменьшаем количество ресурсов
-            std::cout << "Ресурс с ID " << id << " был удален." << std::endl;
-            return;
-        }
-    }
-    std::cout << "Ресурс с таким ID не найден." << std::endl;
-}
-
-// Функция для подсчета общего количества просмотров
-void calculateTotalViews() {
-    int totalViews = 0;
-    int maxViews = 0;
-    int maxIndex = -1;
-
-    for (int i = 0; i < resourceCount; i++) {
-        totalViews += resources[i].views; // Суммируем количество просмотров
-        if (resources[i].views > maxViews) {
-            maxViews = resources[i].views;
-            maxIndex = i; // Сохраняем индекс ресурса с максимальными просмотрами
-        }
-    }
-
-    std::cout << "Общее количество просмотров всех ресурсов: " << totalViews << std::endl;
-    if (maxIndex != -1) {
-        std::cout << "Ресурс с наибольшим количеством просмотров:\n";
-        std::cout << " ID: " << resources[maxIndex].id
-                  << "\nНазвание: " << resources[maxIndex].title
-                  << "\nАвтор: " << resources[maxIndex].author
-                  << "\nКатегория: " << resources[maxIndex].category
-                  << "\nГод: " << resources[maxIndex].year
-                  << "\nСсылка: " << resources[maxIndex].access_link
-                  << "\nПросмотры: " << resources[maxIndex].views << "\n";
-    }
-}
-
-void saveSessionData(const std::string& filename) {
+// Функция для сохранения данных в новый файл
+void saveData(const std::string& filename) {
+    clearScreen();
     std::ofstream file(filename);
     if (!file) {
-        std::cerr << "Ошибка открытия файла для записи: " << filename << std::endl;
+        std::cerr << "Ошибка сохранения в файл." << std::endl;
         return;
     }
 
-    for (int i = 0; i < resourceCount; i++) {
-        file << resources[i].id << " "
-             << resources[i].title << " "
-             << resources[i].author << " "
-             << resources[i].category << " "
-             << resources[i].year << " "
-             << resources[i].access_link << " "
+    // Запись данных каждого ресурса в файл
+    for (int i = 0; i < resourceCount; ++i) {
+        file << resources[i].id << " " << std::quoted(resources[i].title) << " "
+             << std::quoted(resources[i].author) << " " << resources[i].category << " "
+             << resources[i].year << " " << resources[i].access_link << " "
              << resources[i].views << std::endl;
     }
+
     file.close();
-    std::cout << "Данные сохранены в файл: " << filename << std::endl;
+    std::cout << "Данные успешно сохранены в файл: " << filename << std::endl;
 }
 
-void mainMenu() {
-    std::string filename;
-    std::cout << "Введите имя файла для загрузки данных: ";
-    std::cin >> filename;
+// Функция для удаления ресурса по его ID
+void deleteResource() {
+    clearScreen();
+    int id;
+    std::cout << "Введите ID ресурса для удаления: ";
+    while (!(std::cin >> id)) {
+        std::cout << "Ошибка ввода! Пожалуйста, введите корректный ID: ";
+        std::cin.clear();
+        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+    }
 
-    loadData(filename); 
+    bool found = false;
+    for (int i = 0; i < resourceCount; ++i) {
+        if (resources[i].id == id) {
+            for (int j = i; j < resourceCount - 1; ++j) {
+                resources[j] = resources[j + 1]; // Сдвиг массива
+            }
+            resourceCount--; // Уменьшаем количество ресурсов
+            found = true;
+            std::cout << "Ресурс с ID " << id << " был удален." << std::endl;
+            break;
+        }
+    }
+
+    if (!found) {
+        std::cout << "Ресурс с таким ID не найден." << std::endl;
+    }
+}
+
+int main() {
+    std::string filename;
+    std::cout << "Введите название файла для загрузки данных: ";
+    std::cin >> filename;
+    std::cin.ignore(); // Для сброса символа новой строки
+
+    loadData(filename);
 
     int choice;
     while (true) {
-        clearScreen();
-        std::cout << "Меню:\n";
-        std::cout << "1. Просмотр ресурсов\n";
-        std::cout << "2. Добавить ресурс\n";
-        std::cout << "3. Редактировать ресурс\n";
-        std::cout << "4. Удалить ресурс\n";
-        std::cout << "5. Подсчет просмотров\n";
-        std::cout << "6. Сохранить данные в новый файл\n";
-        std::cout << "0. Выйти\n";
-        std::cout << "Выберите пункт меню: ";
-
-        while (!(std::cin >> choice) || choice < 0 || choice > 6) {
-            std::cout << "Ошибка ввода! Пожалуйста, введите корректный пункт меню: ";
+        std::cout << "\nМеню:\n1. Просмотр ресурсов\n2. Добавить ресурс\n3. Подсчет просмотров\n4. Удалить ресурс\n5. Сохранить данные в новый файл\n6. Выйти\n";
+        std::cout << "Выберите пункт: ";
+        if (!(std::cin >> choice)) {
+            std::cout << "Ошибка ввода! Пожалуйста, введите корректное число." << std::endl;
             std::cin.clear();
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            continue;
         }
+
+        std::cin.ignore(); // Сбросить буфер
 
         if (choice == 1) {
             displayData();
         } else if (choice == 2) {
             addResource();
         } else if (choice == 3) {
-            int id;
-            std::cout << "Введите ID ресурса для редактирования: ";
-            while (!(std::cin >> id)) {
-                std::cout << "Ошибка ввода! Пожалуйста, введите корректный ID: ";
-                std::cin.clear();
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            }
-            editResource(id);
-        } else if (choice == 4) {
-            int id;
-            std::cout << "Введите ID ресурса для удаления: ";
-            while (!(std::cin >> id)) {
-                std::cout << "Ошибка ввода! Пожалуйста, введите корректный ID: ";
-                std::cin.clear();
-                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            }
-            deleteResource(id);
-        } else if (choice == 5) {
             calculateTotalViews();
-        } else if (choice == 6) {
+        } else if (choice == 4) {
+            deleteResource();
+        } else if (choice == 5) {
             std::string saveFilename;
-            std::cout << "Введите имя нового файла для сохранения данных: ";
+            std::cout << "Введите название файла для сохранения данных: ";
             std::cin >> saveFilename;
-            saveSessionData(saveFilename);
-        } else if (choice == 0) {
-            break;
+            saveData(saveFilename);
+        } else if (choice == 6) {
+            break; // Выход
+        } else {
+            std::cout << "Неверный пункт меню. Попробуйте снова." << std::endl;
         }
-    }
-}
 
-int main() {
-    mainMenu();
+        std::cout << "\nНажмите Enter, чтобы продолжить...";
+        std::cin.get(); // Ожидание нажатия Enter
+    }
+
     return 0;
 }
